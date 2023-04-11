@@ -1,0 +1,103 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-apps
+  namespace: infra-argocd
+  labels:
+    app.kubernetes.io/name: argocd-configs
+    app.kubernetes.io/component: infra-apps
+    app.kubernetes.io/managed-by: argocd-configs
+spec:
+  destination:
+    namespace: infra-argocd
+    server: https://kubernetes.default.svc
+  project: infra-argocd
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    chart: infra-apps
+    repoURL: https://charts.adfinis.com
+    targetRevision: "*"
+    helm:
+      values: |-
+        fullnameOverride: app
+        argocd:
+          enabled: true
+          project: infra-argocd
+          syncPolicy:
+            automated: {}
+            syncOptions:
+              - CreateNamespace=true
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: infra-argocd
+          fullnameOverride: argocd
+          values:
+            createAggregateRoles: true
+            controller:
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 256Mi
+                limits:
+                  cpu: 1
+                  memory: 2Gi
+            repoServer:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 256Mi
+                # Allow bursting up to 4Gi of memory and a full CPU. Esp. when
+                # repo-server needs to template large charts like kube-prom-stack
+                # it uses heaps of memory.
+                # The previous cpu limit of just 200m additionally impacted this
+                # since it was throttling all the time leading to more congested
+                # jobs running in parallel. The previous amount of memory was 1Gi
+                # and it made the pod get killed too often when congestion
+                # happened. It is likely that we will get away with less once
+                # we have some un-cpu-throttled metrics.
+                limits:
+                  cpu: '1'
+                  memory: 4Gi
+            dex:
+              enabled: false
+            server:
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+              config:
+                admin.enabled: "true"
+                users.anonymous.enabled: "false"
+              staticAssets:
+                enabled: true
+            redis:
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
+            applicationSet:
+              resources:
+                requests:
+                  cpu: 5m
+                  memory: 32Mi
+                limits:
+                  cpu: 10m
+                  memory: 64Mi
+            notifications:
+              resources:
+                requests:
+                  cpu: 1m
+                  memory: 48Mi
+                limits:
+                  cpu: 5m
+                  memory: 96Mi
