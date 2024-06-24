@@ -32,7 +32,7 @@ spec:
             namespace: infra-argocd
           values:
             projects:
-              - name: infra-argocd
+              infra-argocd:
                 description: Deploy and manage the hosted Argo CD instance.
                 sourceRepos:
                 - https://argoproj.github.io/argo-helm
@@ -51,7 +51,7 @@ spec:
                 - group: rbac.authorization.k8s.io
                   kind: ClusterRole
             applications:
-              - name: argocd-configs
+              argocd-configs:
                 namespace: infra-argocd
                 project: infra-argocd
                 destination:
