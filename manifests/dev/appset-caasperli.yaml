@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: caasperlis
-  namespace: caasperlis
+  namespace: infra-argocd
 spec:
   generators:
     - git:
@@ -14,7 +14,7 @@ spec:
     metadata:
       name: "{{path.basename}}"
     spec:
-      project: default
+      project: caasperlis
       sources:
         - repoURL: https://charts.adfinis.com
           targetRevision: 0.10.4
@@ -22,7 +22,11 @@ spec:
           helm:
             releaseName: "caasperli-{{path.basename}}"
             valueFiles:
-              - "../../{{path}}/values.yaml"
+              - "$values/manifests/dev/caasperlis/general.yaml"
+              - "$values/{{path}}/values.yaml"
+        - repoURL: https://github.com/adfinis/argocd-configs
+          targetRevision: feat/appsets
+          ref: values
       destination:
         server: "https://kubernetes.default.svc"
         namespace: caasperlis
