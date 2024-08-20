@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: caasperlis
+  namespace: caasperlis
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/adfinis/argocd-configs
+        revision: feat/appsets
+        directories:
+          - path: "manifests/dev/caasperlis/*"
+  template:
+    metadata:
+      name: "{{path.basename}}"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://charts.adfinis.com
+          targetRevision: 0.10.4
+          chart: "caasperli"
+          helm:
+            releaseName: "caasperli-{{path.basename}}"
+            valueFiles:
+              - "../../{{path}}/values.yaml"
+      destination:
+        server: "https://kubernetes.default.svc"
+        namespace: caasperlis
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
