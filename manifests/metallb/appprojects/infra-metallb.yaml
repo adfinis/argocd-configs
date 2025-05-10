@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: infra-metallb
+  namespace: infra-argocd
+spec:
+  clusterResourceWhitelist:
+  - group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: admissionregistration.k8s.io
+    kind: ValidatingWebhookConfiguration
+  description: Deploy metallb.
+  destinations:
+  - namespace: infra-metallb
+    server: https://kubernetes.default.svc
+  sourceRepos:
+  - https://metallb.github.io/metallb
+  - https://charts.adfinis.com
+  - https://github.com/adfinis/argocd-configs.git

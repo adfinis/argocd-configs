@@ -1,0 +1,11 @@
+apiVersion: metallb.io/v1beta2
+kind: BGPPeer
+metadata:
+  name: laptop
+  namespace: infra-metallb
+spec:
+  myASN: 4200042002
+  peerASN: 4200042001
+  # You need to addapt this to your setup.
+  # Check minikube ssh -- cat /etc/hosts for your hosts ip address
+  peerAddress: 192.168.50.1

@@ -1,0 +1,89 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: misc-apps
+  namespace: infra-argocd
+spec:
+  destination:
+    namespace: infra-argocd
+    server: https://kubernetes.default.svc
+  project: infra-argocd
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
+  source:
+    chart: misc-apps
+    repoURL: https://charts.adfinis.com
+    targetRevision: "*"
+    helm:
+      valuesObject:
+        fullnameOverride: app
+        argocdApps:
+          enabled: false
+          project: infra-argocd
+          syncPolicy:
+            automated: {}
+            syncOptions:
+              - CreateNamespace=true
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: infra-argocd
+          values:
+            projects:
+              infra-argocd:
+                description: Deploy and manage the hosted Argo CD instance.
+                sourceRepos:
+                - https://argoproj.github.io/argo-helm
+                - https://charts.adfinis.com
+                - https://github.com/adfinis/argocd-configs.git
+                destinations:
+                - namespace: infra-argocd
+                  server: https://kubernetes.default.svc
+                clusterResourceWhitelist:
+                - group: ""
+                  kind: Namespace
+                - group: apiextensions.k8s.io
+                  kind: CustomResourceDefinition
+                - group: rbac.authorization.k8s.io
+                  kind: ClusterRoleBinding
+                - group: rbac.authorization.k8s.io
+                  kind: ClusterRole
+            applications:
+              argocd-configs:
+                namespace: infra-argocd
+                project: infra-argocd
+                destination:
+                  namespace: infra-argocd
+                  server: https://kubernetes.default.svc
+                source:
+                  path: manifests/dev/
+                  repoURL: https://github.com/adfinis/argocd-configs.git
+                  targetRevision: HEAD
+                syncPolicy:
+                  automated: {}
+                  syncOptions:
+                    - CreateNamespace=true
+
+
+        metallb:
+          enabled: true
+          project: infra-metallb
+          syncPolicy:
+            automated: {}
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: infra-metallb
+          fullnameOverride: metallb
+          ignoreDifferences:
+            - group: admissionregistration.k8s.io
+              kind: MutatingWebhookConfiguration
+              jqPathExpressions:
+                - '.webhooks[]?.clientConfig.caBundle'
+            - group: admissionregistration.k8s.io
+              kind: ValidatingWebhookConfiguration
+              jqPathExpressions:
+                - '.webhooks[]?.clientConfig.caBundle'
+          values:
+            something: required
